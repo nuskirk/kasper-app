@@ -13,6 +13,26 @@ class PersonRouter implements IRouter {
         throw err;
       }
     });
+
+    router.post('/', async (req: Request, res: Response) => {
+      try {
+        const person = await PersonService.create(req.body);
+        return res.status(200).json({ person });
+      } catch (err) {
+        throw err;
+      }
+    });
+
+    router.put('/:id', async (req: Request, res: Response) => {
+      try {
+        const { id } = req.params;
+        const person = await PersonService.update(parseInt(id), req.body);
+        return res.status(200).json({ person });
+      } catch (err) {
+        throw err;
+      }
+    });
+
     return router;
   }
 }
