@@ -10,13 +10,30 @@ class PersonService implements IPersonService {
 
   async getAll(): Promise<Person[]> {
     try {
-      return await this.db.person.findMany({});
+      const persons = await this.db.person.findMany({});
+
+      if (!persons.length) {
+        return [];
+      }
+
+      const orderedPersons: Person[] = [];
+      const firstPerson = persons.find((person: Person) => person.pre_position === null);
+      let current = firstPerson;
+
+      orderedPersons.push(current);
+
+      for (let i = 1; i < persons.length; i++) {
+        current = persons.find((person: Person) => person.pre_position === current.id);
+        orderedPersons.push(current);
+      }
+
+      return orderedPersons;
     } catch (error) {
       throw error
     }
   }
 
-  async create(payload: { name: string, pre_position?: number, next_position?: number }): Promise<Person> {
+  async create(payload: { name: string, pre_position?: number }): Promise<Person> {
     try {
       return await this.db.person.create({
         data: payload
@@ -26,7 +43,7 @@ class PersonService implements IPersonService {
     }
   }
 
-  async update(id: number, payload: { name?: string, pre_position?: number, next_position?: number }): Promise<Person> {
+  async update(id: number, payload: { name?: string, pre_position?: number }): Promise<Person> {
     try {
       return await this.db.person.update({
         where: {
@@ -34,6 +51,20 @@ class PersonService implements IPersonService {
         },
         data: payload
       });
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async delete(id: number): Promise<boolean> {
+    try {
+      await this.db.person.delete({
+        where: {
+          id
+        }
+      });
+
+      return true;
     } catch (error) {
       throw error
     }

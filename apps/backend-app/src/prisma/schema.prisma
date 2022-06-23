@@ -11,5 +11,4 @@ model Person {
   id            Int     @id @default(autoincrement())
   name          String
   pre_position  Int?
-  next_position Int?
 }
