@@ -1,18 +1,25 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
+import app from './app';
 
-import * as express from 'express';
+import { Application } from 'express';
+import { environment } from './environments/environment';
 
-const app = express();
+async function startServer(): Promise<Application> {
+    const api: Application = await app.server();
+    api.listen(environment.port, () => {
+        console.log(`Listening on port ${environment.port}`);
+    });
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to backend-app!' });
+    return api;
+}
+
+startServer();
+
+process.on("uncaughtException", e => {
+    console.log(e);
+    process.exit(1);
 });
 
-const port = process.env.port || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+process.on("unhandledRejection", e => {
+    console.log(e);
+    process.exit(1);
 });
-server.on('error', console.error);

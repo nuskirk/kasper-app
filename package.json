@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "start": "nx run-many --parallel --target=serve --projects=backend-app,frontend-app",
     "fe:start": "nx run frontend-app:serve:development",
     "be:start": "nx run backend-app:serve:development",
     "build": "nx build",
-    "test": "nx test"
+    "test": "nx test",
+    "db:generate": "prisma generate --schema=./apps/backend-app/src/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=./apps/backend-app/src/prisma/schema.prisma"
   },
   "private": true,
   "dependencies": {
+    "@prisma/client": "^3.15.2",
     "core-js": "^3.6.5",
     "express": "4.17.2",
     "react": "18.2.0",
@@ -48,6 +52,7 @@
     "jest": "27.5.1",
     "nx": "14.3.6",
     "prettier": "^2.6.2",
+    "prisma": "^3.15.2",
     "react-test-renderer": "18.2.0",
     "ts-jest": "27.1.4",
     "ts-node": "~10.8.0",
