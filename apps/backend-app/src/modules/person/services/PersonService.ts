@@ -17,13 +17,13 @@ class PersonService implements IPersonService {
       }
 
       const orderedPersons: Person[] = [];
-      const firstPerson = persons.find((person: Person) => person.pre_position === null);
+      const firstPerson = persons.find((person: Person) => person.previous_person_id === null);
       let current = firstPerson;
 
       orderedPersons.push(current);
 
       for (let i = 1; i < persons.length; i++) {
-        current = persons.find((person: Person) => person.pre_position === current.id);
+        current = persons.find((person: Person) => person.previous_person_id === current.id);
         orderedPersons.push(current);
       }
 
@@ -33,7 +33,7 @@ class PersonService implements IPersonService {
     }
   }
 
-  async create(payload: { name: string, pre_position?: number }): Promise<Person> {
+  async create(payload: { name: string, previous_person_id?: number }): Promise<Person> {
     try {
       return await this.db.person.create({
         data: payload
@@ -43,7 +43,7 @@ class PersonService implements IPersonService {
     }
   }
 
-  async update(id: number, payload: { name?: string, pre_position?: number }): Promise<Person> {
+  async update(id: number, payload: { name?: string, previous_person_id?: number }): Promise<Person> {
     try {
       return await this.db.person.update({
         where: {

@@ -57,7 +57,7 @@ function App() {
 
       if (nextDeletedPerson) {
         await PersonAPI.update(nextDeletedPerson.id, {
-          pre_position: preDeletedPerson ? preDeletedPerson.id : null
+          previous_person_id: preDeletedPerson ? preDeletedPerson.id : null
         })
       }
 
@@ -71,13 +71,13 @@ function App() {
 
   const addNewPerson = async (values: { name: string }): Promise<void> => {
     if (!persons.length) {
-      const newPerson = await PersonAPI.add({ name: values.name, pre_position: null });
+      const newPerson = await PersonAPI.add({ name: values.name, previous_person_id: null });
       setPersons([newPerson]);
       return;
     }
 
     const lastPerson = persons[persons.length - 1];
-    const newPerson = await PersonAPI.add({ name: values.name, pre_position: lastPerson.id });
+    const newPerson = await PersonAPI.add({ name: values.name, previous_person_id: lastPerson.id });
 
     setPersons([...persons, newPerson]);
   }
@@ -91,16 +91,12 @@ function App() {
   };
 
   const onDragEnd = async (result: DropResult): Promise<void> => {
-    if (!result.destination) {
-      return;
-    }
+    if (!result.destination) return;
 
     const destinationIndex = result.destination.index;
     const sourceIndex = result.source.index;
 
-    if (destinationIndex === sourceIndex) {
-      return;
-    }
+    if (destinationIndex === sourceIndex) return;
 
     const orderedPersons = reorder(
       persons,
@@ -108,100 +104,39 @@ function App() {
       destinationIndex
     );
 
-    const promises = [];
     const changedPerson = orderedPersons[destinationIndex];
+    const preDestinationPerson = orderedPersons[destinationIndex - 1];
+    const nextDestinationPerson = orderedPersons[destinationIndex + 1];
+    const sourcePrePerson = persons[sourceIndex - 1];
+    const sourceNextPerson = persons[sourceIndex + 1];
 
-    if (destinationIndex === 0) {
-      const nextPerson = orderedPersons[destinationIndex + 1];
-
-      changedPerson.pre_position = null;
-
-      promises.push(
-        PersonAPI.update(changedPerson.id, {
-          pre_position: changedPerson.pre_position
-        }),
-        PersonAPI.update(nextPerson.id, {
-          pre_position: changedPerson.id
-        })
-      )
-
-      const sourceNext = persons[sourceIndex + 1];
-
-      if (sourceNext) {
-        const sourcePre = persons[sourceIndex - 1];
-
-        promises.push(
-          PersonAPI.update(sourceNext.id, {
-            pre_position: sourcePre.id
-          })
-        )
-      }
-
-    } else if (destinationIndex === orderedPersons.length - 1) {
-      const prePerson = orderedPersons[destinationIndex - 1];
-
-      changedPerson.pre_position = prePerson.id;
-
-      promises.push(
-        PersonAPI.update(changedPerson.id, {
-          pre_position: changedPerson.pre_position
-        }),
-      )
-
-      const sourcePre = persons[sourceIndex - 1];
-      const sourceNext = persons[sourceIndex + 1];
-
-      if (sourcePre) {
-        promises.push(
-          PersonAPI.update(sourceNext.id, {
-            pre_position: sourcePre.id
-          })
-        )
-      } else {
-        promises.push(
-          PersonAPI.update(sourceNext.id, {
-            pre_position: null
-          })
-        )
-      }
-    } else {
-      const prePerson = orderedPersons[destinationIndex - 1];
-      const nextPerson = orderedPersons[destinationIndex + 1];
-
-      changedPerson.pre_position = prePerson.id;
-
-      promises.push(
-        PersonAPI.update(changedPerson.id, {
-          pre_position: changedPerson.pre_position
-        }),
-        PersonAPI.update(nextPerson.id, {
-          pre_position: changedPerson.id
-        })
-      )
-
-      const sourcePre = persons[sourceIndex - 1];
-      const sourceNext = persons[sourceIndex + 1];
-
-      if (!sourcePre) {
-        promises.push(
-          PersonAPI.update(sourceNext.id, {
-            pre_position: null
-          })
-        )
-      }
-
-      if (sourcePre && sourceNext) {
-        promises.push(
-          PersonAPI.update(sourceNext.id, {
-            pre_position: sourcePre.id
-          })
-        )
-      }
+    if (!preDestinationPerson) { // Target is moved to first
+      changedPerson.previous_person_id = null;
+      nextDestinationPerson.previous_person_id = changedPerson.id;
+      if (sourceNextPerson) sourceNextPerson.previous_person_id = sourcePrePerson.id;
+    } else if (!nextDestinationPerson) { // Target is moved to last
+      changedPerson.previous_person_id = preDestinationPerson.id;
+      sourceNextPerson.previous_person_id = sourcePrePerson ? sourcePrePerson.id : null;
+    } else { // Target is moved inside list
+      changedPerson.previous_person_id = preDestinationPerson.id;
+      nextDestinationPerson.previous_person_id = changedPerson.id;
+      if (!sourcePrePerson) sourceNextPerson.previous_person_id = null;
+      if (sourcePrePerson && sourceNextPerson) sourceNextPerson.previous_person_id = sourcePrePerson.id;
     }
 
     orderedPersons.splice(destinationIndex, 1, { ...changedPerson });
 
-    await Promise.all(promises);
+    await Promise.all([
+      PersonAPI.update(changedPerson.id, {
+        previous_person_id: changedPerson.previous_person_id
+      }),
+      nextDestinationPerson && PersonAPI.update(nextDestinationPerson.id, {
+        previous_person_id: nextDestinationPerson.previous_person_id
+      }),
+      sourceNextPerson &&  PersonAPI.update(sourceNextPerson.id, {
+        previous_person_id: sourceNextPerson.previous_person_id
+      })
+    ])
 
     setPersons(orderedPersons);
   }

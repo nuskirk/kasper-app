@@ -16,7 +16,7 @@ const PersonAPI = {
     }
   },
 
-  add: async (payload: { name: string, pre_position: number | null  }) => {
+  add: async (payload: { name: string, previous_person_id: number | null  }) => {
     try {
       const response = await axios.post(environment.apiEndpoint + '/persons', payload);
       const { data } = response;
@@ -30,7 +30,7 @@ const PersonAPI = {
     }
   },
 
-  update: async (id: number, payload: { name?: string, pre_position?: number | null }) => {
+  update: async (id: number, payload: { name?: string, previous_person_id?: number | null }) => {
     try {
       const response = await axios.put(environment.apiEndpoint + `/persons/${id}`, payload);
       const { data } = response;
