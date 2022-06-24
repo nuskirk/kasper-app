@@ -51,6 +51,7 @@ We are using Nx to serve a monorepo workspace with 2 apps:
 ```
 
 - frontend-app: React/Typescript
+```
 +-- /frontend-app - React Client codebase
 |   +-- /src
 |   |   +-- /api  - defines api endpoint
@@ -59,3 +60,9 @@ We are using Nx to serve a monorepo workspace with 2 apps:
 |   |   +-- /environments - defines environment variables
 |   |   +-- main.ts - main file
 ```
+
+## Position solution
+
+I apply the Linked List approach to implement the ordered list of people.
+For each item, we have the `previous_person_id` field as a pointer to the previous person. For the first item, `previous_person_id` is NULL.
+When an item position is changed, we only need to update the `previous_person_id` field for coresponding items.
